@@ -1,4 +1,4 @@
-package model
+package parser
 
 import java.lang.Exception
 
