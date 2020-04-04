@@ -11,17 +11,17 @@ fun parseExpression(input: InputBrowser): Expression {
     return parseConstExpression(input) ?: throw SyntaxError("Couldn't parse expression")
 }
 
-private const val BEGIN = "("
-private const val END = ")"
+internal const val BINEXP_BEGIN = "("
+internal const val BINEXP_END = ")"
 
 fun parseBinaryExpression(input: InputBrowser): BinaryExpression? {
-    if (!input.consume(BEGIN)) return null
+    if (!input.consume(BINEXP_BEGIN)) return null
     val leftOperand = parseExpression(input)
 
     val operator = parseOperator(input)
 
     val rightOperand = parseExpression(input)
-    if (!input.consume(END)) throw SyntaxError("Missing $END")
+    if (!input.consume(BINEXP_END)) throw SyntaxError("Missing $BINEXP_END")
 
     if (operator.operandsType != leftOperand.type || operator.operandsType != rightOperand.type) {
         throw TypeError("Inconsistent operands type")
@@ -44,7 +44,6 @@ fun parseConstExpression(input: InputBrowser): ConstExpression? {
     if (buf.isEmpty()) return null
     return ConstExpression(buf.toString().toLong())
 }
-
 
 fun parseOperator(input: InputBrowser): Operator {
     for (operator in Operator.values()) {

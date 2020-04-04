@@ -1,5 +1,8 @@
 package structures
 
+import parser.BINEXP_BEGIN
+import parser.BINEXP_END
+
 
 sealed class Expression {
     abstract val type: Type
@@ -43,6 +46,8 @@ data class BinaryExpression(
 ) : Expression() {
     override val type = operator.resultType
 
+    override fun toString() = "$BINEXP_BEGIN$leftOperand$operator$rightOperand$BINEXP_END"
+
     override fun substitute(expression: Expression) = BinaryExpression(
         leftOperand.substitute(expression),
         operator,
@@ -52,6 +57,8 @@ data class BinaryExpression(
 
 data class ConstExpression(val value: Long) : Expression() {
     override val type = Type.NUMERIC
+
+    override fun toString() = value.toString()
 
     override fun substitute(expression: Expression) = ConstExpression(value)
 }

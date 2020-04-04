@@ -4,6 +4,7 @@ import io.InputBrowser
 import structures.Call
 import structures.CallChain
 
+
 internal const val CALLS_SEPARATOR = "%>%"
 
 fun parseCallChain(input: InputBrowser): CallChain {
