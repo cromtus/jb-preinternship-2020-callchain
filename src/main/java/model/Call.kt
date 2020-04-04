@@ -1,54 +1,46 @@
 package model
 
-import io.ExpressionBrowser
+import io.ModelBrowser
+import java.lang.Exception
 
 
-abstract class Call
-
-abstract class CallFactory {
-    abstract val BEGIN: String
-    private val END = "}"
-
-    abstract fun handleExpression(input: ExpressionBrowser) : Call?
-
-    open fun parse(input: ExpressionBrowser) : Call? {
-        if (!input.consume(BEGIN)) return null
-        val call = handleExpression(input) ?: return null
-        if (!input.consume(END)) return null
-        return call
+sealed class Call {
+    companion object {
+        const val END = "}"
     }
 }
 
-class FilterCall constructor(private val expression: Expression): Call() {
-    override fun toString() = "fil($expression)"
+data class FilterCall(val expression: Expression): Call() {
+    override fun toString() = "$BEGIN$expression$END"
 
-    companion object: CallFactory() {
-        override val BEGIN = "filter{"
-
-        override fun handleExpression(input: ExpressionBrowser): FilterCall? {
-            val expr = Expression.parse(input) ?: return null
-            return FilterCall(expr)
-        }
-
-        override fun parse(input: ExpressionBrowser) : FilterCall? {
-            return super.parse(input) as FilterCall?
-        }
+    companion object {
+        const val BEGIN = "filter{"
     }
 }
 
-class MapCall constructor(private val expression: Expression): Call() {
-    override fun toString() = "map($expression)"
+val IDENTITY_FILTER_CALL = FilterCall(BinaryExpression(Element, Operator.EQUALS, Element))
 
-    companion object: CallFactory() {
-        override val BEGIN = "map{"
+data class MapCall(val expression: Expression): Call() {
+    override fun toString() = "$BEGIN$expression$END"
 
-        override fun handleExpression(input: ExpressionBrowser): MapCall? {
-            val expr = Expression.parse(input) ?: return null
-            return MapCall(expr)
-        }
-
-        override fun parse(input: ExpressionBrowser): MapCall? {
-            return super.parse(input) as MapCall?
-        }
+    companion object {
+        const val BEGIN = "map{"
     }
+}
+
+fun parseCall(input: ModelBrowser): Call? {
+    val call = when {
+        input.consume(FilterCall.BEGIN) -> FilterCall(
+                (parseExpression(input) ?: return null).let {
+                    if (it.isBool) it else throw Exception("TYPE ERROR")
+                }
+        )
+        input.consume(MapCall.BEGIN) -> MapCall(
+                (parseExpression(input) ?: return null).let {
+                    if (!it.isBool) it else throw Exception("TYPE ERROR")
+                }
+        )
+        else -> return null
+    }
+    return if (input.consume(Call.END)) call else null
 }

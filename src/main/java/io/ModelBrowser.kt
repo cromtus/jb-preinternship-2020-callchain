@@ -1,6 +1,6 @@
 package io
 
-class ExpressionBrowser(private val expression: String) {
+class ModelBrowser(private val expression: String) {
     private var caret = 0
 
     fun consume(pattern: String): Boolean {
@@ -11,6 +11,10 @@ class ExpressionBrowser(private val expression: String) {
         }
         return false
     }
+
+    fun look() = if (!end()) expression[caret] else null
+
+    fun increment() = ++caret
 
     fun end() = expression.length == caret
 }

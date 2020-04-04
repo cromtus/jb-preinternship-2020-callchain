@@ -1,8 +1,9 @@
-import io.ExpressionBrowser
+import io.ModelBrowser
 import model.Model
 
 fun main() {
-    val input = ExpressionBrowser(readLine() ?: "")
+    val input = ModelBrowser(readLine() ?: "")
     val model = Model.parse(input)
-    print(model)
+    val newModel = model.process()
+    print(newModel)
 }

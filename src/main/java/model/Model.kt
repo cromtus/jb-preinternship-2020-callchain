@@ -1,15 +1,17 @@
 package model
 
-import io.ExpressionBrowser
+import io.ModelBrowser
 import java.lang.Exception
 
-class Model private constructor(private val root: CallChain) {
+data class Model(val root: CallChain) {
     override fun toString(): String {
         return root.toString()
     }
 
+    fun process() = root.process()
+
     companion object {
-        fun parse(input: ExpressionBrowser): Model {
+        fun parse(input: ModelBrowser): Model {
             val callChain = CallChain.parse(input) ?: throw Exception("SYNTAX ERROR")
             if (!input.end()) throw Exception("SYNTAX ERROR")
             return Model(callChain)
