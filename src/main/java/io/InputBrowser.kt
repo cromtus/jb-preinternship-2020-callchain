@@ -1,21 +1,38 @@
 package io
 
 
-class InputBrowser(private val expression: String) {
-    private var caret = 0
+abstract class InputBrowser {
+    abstract fun consume(length: Int, filter: (String) -> Boolean): String?
+    abstract fun look(): Char?
+    abstract fun increment()
+    abstract fun end(): Boolean
 
-    fun consume(pattern: String): Boolean {
-        val end = caret + pattern.length
-        if (end <= expression.length && expression.substring(caret, end) == pattern) {
-            caret += pattern.length
-            return true
+    fun consume(pattern: String): Boolean = consume(pattern.length) {
+        it == pattern
+    } != null
+}
+
+class StringInputBrowser(private val expression: String) : InputBrowser() {
+    var caret = 0
+        private set
+
+    override fun consume(length: Int, filter: (String) -> Boolean): String? {
+        val end = caret + length
+        if (end <= expression.length) {
+            val substring = expression.substring(caret, end)
+            if (filter(substring)) {
+                caret += length
+                return substring
+            }
         }
-        return false
+        return null
     }
 
-    fun look() = if (!end()) expression[caret] else null
+    override fun look() = if (!end()) expression[caret] else null
 
-    fun increment() = ++caret
+    override fun increment() {
+        ++caret
+    }
 
-    fun end() = expression.length == caret
+    override fun end() = expression.length <= caret
 }

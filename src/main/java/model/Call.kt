@@ -9,17 +9,18 @@ sealed class Call {
     }
 }
 
-data class FilterCall(val expression: Expression): Call() {
+data class FilterCall(val expression: Expression) : Call() {
     override fun toString() = "$BEGIN$expression$END"
 
     companion object {
         const val BEGIN = "filter{"
+        val IDENTITY = FilterCall(BinaryExpression(
+            ConstExpression(1), Operator.EQUALS, ConstExpression(1)
+        ))
     }
 }
 
-val IDENTITY_FILTER_CALL = FilterCall(BinaryExpression(Element, Operator.EQUALS, Element))
-
-data class MapCall(val expression: Expression): Call() {
+data class MapCall(val expression: Expression) : Call() {
     override fun toString() = "$BEGIN$expression$END"
 
     companion object {
@@ -27,19 +28,31 @@ data class MapCall(val expression: Expression): Call() {
     }
 }
 
-fun parseCall(input: InputBrowser): Call? {
+fun parseCall(input: InputBrowser): Call {
     val call = when {
         input.consume(FilterCall.BEGIN) -> FilterCall(
-                (parseExpression(input) ?: return null).let {
-                    if (it.isBool) it else throw TypeError()
+            parseExpression(input).let {
+                if (it.type == Expression.Type.BOOLEAN) {
+                    it
+                } else {
+                    throw TypeError("Filter argument must be boolean")
                 }
+            }
         )
         input.consume(MapCall.BEGIN) -> MapCall(
-                (parseExpression(input) ?: return null).let {
-                    if (!it.isBool) it else throw TypeError()
+            parseExpression(input).let {
+                if (it.type == Expression.Type.NUMERIC) {
+                    it
+                } else {
+                    throw TypeError("Map argument must be numeric")
                 }
+            }
         )
-        else -> return null
+        else -> throw SyntaxError("Couldn't parse function call. You may have forgotten about '{'")
     }
-    return if (input.consume(Call.END)) call else null
+    if (input.consume(Call.END)) {
+        return call
+    } else {
+        throw SyntaxError("Missing ${Call.END}")
+    }
 }

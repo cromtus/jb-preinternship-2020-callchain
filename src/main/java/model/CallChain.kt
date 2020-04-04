@@ -20,25 +20,25 @@ data class CallChain(val calls: List<Call>) {
                         FilterCall(addition)
                     } else {
                         FilterCall(BinaryExpression(
-                                commonFilterCall.expression,
-                                Operator.AND,
-                                addition
+                            commonFilterCall.expression,
+                            Operator.AND,
+                            addition
                         ))
                     }
                 }
             }
         }
-        commonFilterCall = commonFilterCall ?: IDENTITY_FILTER_CALL
+        commonFilterCall = commonFilterCall ?: FilterCall.IDENTITY
         return Model(CallChain(listOf(commonFilterCall, MapCall(currentExpression))))
     }
 
     companion object {
         private const val CALLS_SEPARATOR = "%>%"
 
-        fun parse(input: InputBrowser): CallChain? {
+        fun parse(input: InputBrowser): CallChain {
             val callsList = ArrayList<Call>()
             while (true) {
-                callsList.add(parseCall(input) ?: return null)
+                callsList.add(parseCall(input))
                 if (!input.consume(CALLS_SEPARATOR)) {
                     return CallChain(callsList)
                 }

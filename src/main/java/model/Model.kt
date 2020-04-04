@@ -1,7 +1,6 @@
 package model
 
 import io.InputBrowser
-import java.lang.Exception
 
 
 data class Model(val root: CallChain) {
@@ -13,8 +12,8 @@ data class Model(val root: CallChain) {
 
     companion object {
         fun parse(input: InputBrowser): Model {
-            val callChain = CallChain.parse(input) ?: throw Exception("SYNTAX ERROR")
-            if (!input.end()) throw Exception("SYNTAX ERROR")
+            val callChain = CallChain.parse(input)
+            if (!input.end()) throw SyntaxError("Root expression must be only a call-chain")
             return Model(callChain)
         }
     }

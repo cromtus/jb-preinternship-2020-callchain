@@ -4,64 +4,64 @@ import io.InputBrowser
 import java.lang.StringBuilder
 
 
-abstract class Expression {
-    abstract val isBool: Boolean
+sealed class Expression {
+    abstract val type: Type
     abstract fun substitute(expression: Expression): Expression
+
+    enum class Type {
+        BOOLEAN, NUMERIC
+    }
 }
 
 object Element : Expression() {
-    override val isBool = false
-    const val pattern = "element"
+    override val type = Type.NUMERIC
+    const val stringValue = "element"
 
-    override fun toString() = pattern
+    override fun toString() = stringValue
 
     override fun substitute(expression: Expression) = expression
 }
 
-enum class Operator {
-    PLUS, MINUS, MULT, GREATER, LESS, EQUALS, AND, OR;
+enum class Operator(
+    val operandsType: Expression.Type,
+    val resultType: Expression.Type,
+    val stringValue: String
+) {
+    PLUS(Expression.Type.NUMERIC, Expression.Type.NUMERIC, "+"),
+    MINUS(Expression.Type.NUMERIC, Expression.Type.NUMERIC, "-"),
+    MULT(Expression.Type.NUMERIC, Expression.Type.NUMERIC, "*"),
+    GREATER(Expression.Type.NUMERIC, Expression.Type.BOOLEAN, ">"),
+    LESS(Expression.Type.NUMERIC, Expression.Type.BOOLEAN, "<"),
+    EQUALS(Expression.Type.NUMERIC, Expression.Type.BOOLEAN, "="),
+    AND(Expression.Type.BOOLEAN, Expression.Type.BOOLEAN, "&"),
+    OR(Expression.Type.BOOLEAN, Expression.Type.BOOLEAN, "|");
 
-    val areOperandsBool get() = this in arrayOf(AND, OR)
-    val isResultBool get() = this in arrayOf(GREATER, LESS, EQUALS, AND, OR)
-
-    override fun toString() = when (this) {
-        PLUS -> "+"
-        MINUS -> "-"
-        MULT -> "*"
-        GREATER -> ">"
-        LESS -> "<"
-        EQUALS -> "="
-        AND -> "&"
-        OR -> "|"
-    }
+    override fun toString() = stringValue
 
     companion object {
-        fun parse(input: InputBrowser) = when {
-            input.consume("+") -> PLUS
-            input.consume("-") -> MINUS
-            input.consume("*") -> MULT
-            input.consume(">") -> GREATER
-            input.consume("<") -> LESS
-            input.consume("=") -> EQUALS
-            input.consume("&") -> AND
-            input.consume("|") -> OR
-            else -> null
+        fun parse(input: InputBrowser): Operator? {
+            for (operator in Operator.values()) {
+                if (input.consume(operator.stringValue)) {
+                    return operator
+                }
+            }
+            return null
         }
     }
 }
 
 data class BinaryExpression(
-        val leftOperand: Expression,
-        val operator: Operator,
-        val rightOperand: Expression
+    val leftOperand: Expression,
+    val operator: Operator,
+    val rightOperand: Expression
 ) : Expression() {
     override fun toString() = "$BEGIN$leftOperand$operator$rightOperand$END"
-    override val isBool get() = operator.isResultBool
+    override val type get() = operator.resultType
 
     override fun substitute(expression: Expression) = BinaryExpression(
-            leftOperand.substitute(expression),
-            operator,
-            rightOperand.substitute(expression)
+        leftOperand.substitute(expression),
+        operator,
+        rightOperand.substitute(expression)
     )
 
     companion object {
@@ -70,23 +70,24 @@ data class BinaryExpression(
 
         fun parse(input: InputBrowser): BinaryExpression? {
             if (!input.consume(BEGIN)) return null
-            val leftOperand = parseExpression(input) ?: return null
+            val leftOperand = parseExpression(input)
 
-            val operator = Operator.parse(input) ?: return null
+            val operator = Operator.parse(input) ?:
+                throw SyntaxError("Unknown operator")
 
-            val rightOperand = parseExpression(input) ?: return null
-            if (!input.consume(END)) return null
+            val rightOperand = parseExpression(input)
+            if (!input.consume(END)) throw SyntaxError("Missing $END")
 
-            if (operator.areOperandsBool != leftOperand.isBool || operator.areOperandsBool != rightOperand.isBool) {
-                throw TypeError()
+            if (operator.operandsType != leftOperand.type || operator.operandsType != rightOperand.type) {
+                throw TypeError("Inconsistent operands type")
             }
             return BinaryExpression(leftOperand, operator, rightOperand)
         }
     }
 }
 
-data class ConstExpression(val value: Long): Expression() {
-    override val isBool = false
+data class ConstExpression(val value: Long) : Expression() {
+    override val type = Type.NUMERIC
 
     override fun toString() = value.toString()
 
@@ -96,13 +97,14 @@ data class ConstExpression(val value: Long): Expression() {
         fun parse(input: InputBrowser): ConstExpression? {
             val buf = StringBuilder()
             while (!input.end()) {
-                val c = input.look()!!
-                if (c.isDigit() || (c == '-' && buf.isEmpty())) {
-                    buf.append(c)
+                val s = input.consume(1) {
+                    it[0].isDigit() || (it == "-" && buf.isEmpty())
+                }
+                if (s != null) {
+                    buf.append(s[0])
                 } else {
                     break
                 }
-                input.increment()
             }
             if (buf.isEmpty()) return null
             return ConstExpression(buf.toString().toLong())
@@ -110,8 +112,8 @@ data class ConstExpression(val value: Long): Expression() {
     }
 }
 
-fun parseExpression(input: InputBrowser): Expression? {
-    if (input.consume(Element.pattern)) return Element
+fun parseExpression(input: InputBrowser): Expression {
+    if (input.consume(Element.stringValue)) return Element
     BinaryExpression.parse(input)?.let { return it }
-    return ConstExpression.parse(input)
+    return ConstExpression.parse(input) ?: throw SyntaxError("Couldn't parse expression")
 }
