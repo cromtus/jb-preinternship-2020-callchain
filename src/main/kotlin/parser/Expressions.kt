@@ -24,7 +24,7 @@ fun parseBinaryExpression(input: InputBrowser): BinaryExpression? {
     if (!input.consume(BINEXP_END)) throw SyntaxError("Missing $BINEXP_END")
 
     if (operator.operandsType != leftOperand.type || operator.operandsType != rightOperand.type) {
-        throw TypeError("Inconsistent operands type")
+        throw TypeError("Inconsistent operands types")
     }
     return BinaryExpression(leftOperand, operator, rightOperand)
 }

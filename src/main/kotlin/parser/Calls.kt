@@ -18,7 +18,7 @@ fun parseCall(input: InputBrowser): Call {
                 if (it.type == Expression.Type.BOOLEAN) {
                     it
                 } else {
-                    throw TypeError("Filter argument must be boolean")
+                    throw TypeError("filter{} requires boolean argument")
                 }
             }
         )
@@ -27,7 +27,7 @@ fun parseCall(input: InputBrowser): Call {
                 if (it.type == Expression.Type.NUMERIC) {
                     it
                 } else {
-                    throw TypeError("Map argument must be numeric")
+                    throw TypeError("map{} requires numeric argument")
                 }
             }
         )
