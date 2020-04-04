@@ -1,7 +1,6 @@
 package model
 
-import io.ModelBrowser
-import java.lang.Exception
+import io.InputBrowser
 import java.lang.StringBuilder
 
 
@@ -37,7 +36,7 @@ enum class Operator {
     }
 
     companion object {
-        fun parse(input: ModelBrowser) = when {
+        fun parse(input: InputBrowser) = when {
             input.consume("+") -> PLUS
             input.consume("-") -> MINUS
             input.consume("*") -> MULT
@@ -69,7 +68,7 @@ data class BinaryExpression(
         private const val BEGIN = "("
         private const val END = ")"
 
-        fun parse(input: ModelBrowser): BinaryExpression? {
+        fun parse(input: InputBrowser): BinaryExpression? {
             if (!input.consume(BEGIN)) return null
             val leftOperand = parseExpression(input) ?: return null
 
@@ -79,7 +78,7 @@ data class BinaryExpression(
             if (!input.consume(END)) return null
 
             if (operator.areOperandsBool != leftOperand.isBool || operator.areOperandsBool != rightOperand.isBool) {
-                throw Exception("TYPE ERROR")
+                throw TypeError()
             }
             return BinaryExpression(leftOperand, operator, rightOperand)
         }
@@ -94,7 +93,7 @@ data class ConstExpression(val value: Long): Expression() {
     override fun substitute(expression: Expression) = ConstExpression(value)
 
     companion object {
-        fun parse(input: ModelBrowser): ConstExpression? {
+        fun parse(input: InputBrowser): ConstExpression? {
             val buf = StringBuilder()
             while (!input.end()) {
                 val c = input.look()!!
@@ -111,7 +110,7 @@ data class ConstExpression(val value: Long): Expression() {
     }
 }
 
-fun parseExpression(input: ModelBrowser): Expression? {
+fun parseExpression(input: InputBrowser): Expression? {
     if (input.consume(Element.pattern)) return Element
     BinaryExpression.parse(input)?.let { return it }
     return ConstExpression.parse(input)

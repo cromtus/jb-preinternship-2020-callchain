@@ -1,6 +1,7 @@
 package model
 
-import io.ModelBrowser
+import io.InputBrowser
+
 
 data class CallChain(val calls: List<Call>) {
     override fun toString() = calls.joinToString(CALLS_SEPARATOR)
@@ -15,10 +16,10 @@ data class CallChain(val calls: List<Call>) {
                 }
                 is FilterCall -> {
                     val addition = call.expression.substitute(currentExpression)
-                    if (commonFilterCall == null) {
-                        commonFilterCall = FilterCall(addition)
+                    commonFilterCall = if (commonFilterCall == null) {
+                        FilterCall(addition)
                     } else {
-                        commonFilterCall = FilterCall(BinaryExpression(
+                        FilterCall(BinaryExpression(
                                 commonFilterCall.expression,
                                 Operator.AND,
                                 addition
@@ -34,7 +35,7 @@ data class CallChain(val calls: List<Call>) {
     companion object {
         private const val CALLS_SEPARATOR = "%>%"
 
-        fun parse(input: ModelBrowser): CallChain? {
+        fun parse(input: InputBrowser): CallChain? {
             val callsList = ArrayList<Call>()
             while (true) {
                 callsList.add(parseCall(input) ?: return null)

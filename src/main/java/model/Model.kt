@@ -1,7 +1,8 @@
 package model
 
-import io.ModelBrowser
+import io.InputBrowser
 import java.lang.Exception
+
 
 data class Model(val root: CallChain) {
     override fun toString(): String {
@@ -11,7 +12,7 @@ data class Model(val root: CallChain) {
     fun process() = root.process()
 
     companion object {
-        fun parse(input: ModelBrowser): Model {
+        fun parse(input: InputBrowser): Model {
             val callChain = CallChain.parse(input) ?: throw Exception("SYNTAX ERROR")
             if (!input.end()) throw Exception("SYNTAX ERROR")
             return Model(callChain)

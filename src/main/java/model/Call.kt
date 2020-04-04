@@ -1,7 +1,6 @@
 package model
 
-import io.ModelBrowser
-import java.lang.Exception
+import io.InputBrowser
 
 
 sealed class Call {
@@ -28,16 +27,16 @@ data class MapCall(val expression: Expression): Call() {
     }
 }
 
-fun parseCall(input: ModelBrowser): Call? {
+fun parseCall(input: InputBrowser): Call? {
     val call = when {
         input.consume(FilterCall.BEGIN) -> FilterCall(
                 (parseExpression(input) ?: return null).let {
-                    if (it.isBool) it else throw Exception("TYPE ERROR")
+                    if (it.isBool) it else throw TypeError()
                 }
         )
         input.consume(MapCall.BEGIN) -> MapCall(
                 (parseExpression(input) ?: return null).let {
-                    if (!it.isBool) it else throw Exception("TYPE ERROR")
+                    if (!it.isBool) it else throw TypeError()
                 }
         )
         else -> return null

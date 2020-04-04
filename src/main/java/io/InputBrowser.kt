@@ -1,6 +1,7 @@
 package io
 
-class ModelBrowser(private val expression: String) {
+
+class InputBrowser(private val expression: String) {
     private var caret = 0
 
     fun consume(pattern: String): Boolean {
