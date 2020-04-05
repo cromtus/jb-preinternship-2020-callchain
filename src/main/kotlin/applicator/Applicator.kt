@@ -4,7 +4,7 @@ import structures.*
 import java.lang.RuntimeException
 
 
-fun applyModelTo(model: Model, array: Iterable<Long>): Iterable<Long> {
+fun applyModelTo(model: Model, array: Iterable<Int>): Iterable<Int> {
     var result = array
     for (call in model.root.calls) {
         result = when (call) {
@@ -15,13 +15,13 @@ fun applyModelTo(model: Model, array: Iterable<Long>): Iterable<Long> {
     return result
 }
 
-private fun applyFilterTo(filterCall: FilterCall, value: Long) =
+private fun applyFilterTo(filterCall: FilterCall, value: Int) =
     applyBooleanExpressionTo(filterCall.expression, value)
 
-private fun applyMapTo(mapCall: MapCall, value: Long) =
+private fun applyMapTo(mapCall: MapCall, value: Int) =
     applyNumericExpressionTo(mapCall.expression, value)
 
-private fun applyBooleanExpressionTo(expression: Expression, value: Long): Boolean {
+private fun applyBooleanExpressionTo(expression: Expression, value: Int): Boolean {
     if (expression.type == Expression.Type.BOOLEAN) {
         val binaryExpression = expression as BinaryExpression
         return when (binaryExpression.operator.operandsType) {
@@ -41,22 +41,24 @@ private fun applyBooleanExpressionTo(expression: Expression, value: Long): Boole
     }
 }
 
-private fun applyBooleanOperator(leftOperand: Boolean, operator: Operator, rightOperand: Boolean) =
-    when (operator) {
+private fun applyBooleanOperator(
+    leftOperand: Boolean, operator: Operator, rightOperand: Boolean
+) = when (operator) {
         Operator.AND -> leftOperand && rightOperand
         Operator.OR -> leftOperand || rightOperand
         else -> throw RuntimeException("Expected & or |")
     }
 
-private fun applyBooleanOperator(leftOperand: Long, operator: Operator, rightOperand: Long) =
-    when (operator) {
+private fun applyBooleanOperator(
+    leftOperand: Int, operator: Operator, rightOperand: Int
+) = when (operator) {
         Operator.GREATER -> leftOperand > rightOperand
         Operator.EQUALS -> leftOperand == rightOperand
         Operator.LESS -> leftOperand < rightOperand
         else -> throw RuntimeException("Expected >, = or <")
     }
 
-private fun applyNumericExpressionTo(expression: Expression, value: Long): Long {
+private fun applyNumericExpressionTo(expression: Expression, value: Int): Int {
     if (expression.type == Expression.Type.NUMERIC) {
         return when (expression) {
             is Element -> value
@@ -72,8 +74,9 @@ private fun applyNumericExpressionTo(expression: Expression, value: Long): Long 
     }
 }
 
-private fun applyNumericOperator(leftOperand: Long, operator: Operator, rightOperand: Long) =
-    when (operator) {
+private fun applyNumericOperator(
+    leftOperand: Int, operator: Operator, rightOperand: Int
+) = when (operator) {
         Operator.PLUS -> leftOperand + rightOperand
         Operator.MINUS -> leftOperand - rightOperand
         Operator.MULT -> leftOperand * rightOperand
