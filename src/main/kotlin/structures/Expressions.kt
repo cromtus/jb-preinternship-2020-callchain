@@ -55,7 +55,7 @@ data class BinaryExpression(
     )
 }
 
-data class ConstExpression(val value: Long) : Expression() {
+data class ConstExpression(val value: Int) : Expression() {
     override val type = Type.NUMERIC
 
     override fun toString() = value.toString()

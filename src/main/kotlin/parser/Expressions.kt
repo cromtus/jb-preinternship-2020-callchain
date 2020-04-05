@@ -42,7 +42,7 @@ fun parseConstExpression(input: InputBrowser): ConstExpression? {
         }
     }
     if (buf.isEmpty()) return null
-    return ConstExpression(buf.toString().toLong())
+    return ConstExpression(buf.toString().toInt())
 }
 
 fun parseOperator(input: InputBrowser): Operator {
